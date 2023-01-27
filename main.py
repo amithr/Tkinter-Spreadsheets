@@ -1,39 +1,32 @@
 # https://www.thepythoncode.com/article/spreadsheet-app-using-tkinter-in-python
 # Imports
 from tkinter import *
-import string
-import sys
-import ctypes
+import string, csv
 
 # Define X and Y Axis Lists
-xAxis = string.ascii_lowercase[0:7]
+# Gives the first 8 letters in lower case
+xAxis = string.ascii_uppercase[0:4]
+# Creates columns of 12 fields
 yAxis = range(0, 12)
 
 # Cells will hold the strings vars and the labels 
 cells = {}
 
-# Open the content of the given file
-# if one was provided and save it as a two 
-# dimensional list.
-CsvContent = ''
-if len(sys.argv) > 1:
-    with open(sys.argv[1], 'r') as f:
-        CsvContent = f.read().split('\n')
-        for i, layer in enumerate(CsvContent):
-            CsvContent[i] = layer.split(',')
-
 # Make a new Top Level Element (Window)
 root = Tk()
 # Set the the title to also mention the given file name
 # if there is one
-title = "Spreadsheet App" if CsvContent == '' else f"Spreadsheet App - {sys.argv[1]}"
+title = "Spreadsheet App"
 root.title(title)
+
 # Display the Y-axis labels
+# Labels each row
 for y in yAxis:
     label = Label(root, text = y, width=5, background='white')
     label.grid(row=y + 1, column=0)
 
 # Display the X-axis labels with enumerate
+# Enumerate takes a string of letters and turns them into an iterable
 for i, x in enumerate(xAxis):
     label = Label(root, text = x, width=35, background='white')
     label.grid(row=0, column=i + 1, sticky='n')
@@ -43,7 +36,7 @@ for y in yAxis:
     for xcoor, x in enumerate(xAxis):
         # Generate a Unique ID for the cell with the coordinates
         id = f'{x}{y}'
-         # Make String Var associated with the Cell
+         # Make String Var associated with the Cell - initialized to be blank
         var = StringVar(root, '', id)
          # Make Entry and label, offset each axis by one because of the lables
         e = Entry(root, textvariable=var, width=30)
@@ -54,48 +47,39 @@ for y in yAxis:
         # Save the string var and a reference to the labels in the dictionary
         cells[id] = [var, label]
 
-# Evaluating a cell
-def evaluateCell(cellId):
+def get_data():
+    for key, value in cells.items():
+        print(key, ':', value[0].get())
 
-    # Get the content from the string var
-    # and make it lowercase
-    content = cells[cellId][0].get()
-    content = content.lower()
-     # get the reference to the label
-    label = cells[cellId][1]
-    # if the cell starts with a = it is evaluated
-    if content.startswith('='):
-        # Loop through all cells ...
-        for cell in cells:
-            # ... and see if their name appears in this cell
-            if cell in content.lower():
-                # if it is then replace the name occurences 
-                # with the evaluated content from there.
-                content = content.replace(cell, str(evaluateCell(cell)))
-        # Get the content without the = and try to evaluate it
-        content = content[1:]
-        try:
-            content = eval(content)
-        except:
-            content = 'NAN'
-        label['text'] = content
-        return content
-        # If not, the label just shows the content
-    else:
-        label['text'] = content
-        return content
+def generate_csv():
+    header = xAxis
+    csv_data = []
+    for key, value in cells.items():
+        csv_data.append(value[0].get())
+    counter = 0
+    main_array = []
+    for y in yAxis:
+        inner_array = []
+        for x in xAxis:
+            inner_array.append(csv_data[counter])
+            counter += 1
+        main_array.append(inner_array)
+    print(main_array)
 
-# Call the eval function for every cell every ten milliseconds.
-def updateAllCells():
+    file = open('data.csv', 'w', encoding='UTF8', newline='')
+    writer = csv.writer(file)
+    # write the header
+    writer.writerow(header)
+    # write multiple rows
+    writer.writerows(main_array)
+    file.close()
+    
 
-    # Call it again
-    root.after(10, updateAllCells)
+submit_button = Button(root, text="Submit", command=get_data)
+submit_button.grid(column=1, row=14)
 
-    # Loop through all cells
-    for cell in cells:
-        evaluateCell(cell)
+generate_csv_button = Button(root, text="Generate CSV", command=generate_csv)
+generate_csv_button.grid(column=2, row=14)
 
-# Start the updating Process
-updateAllCells()
 # Run the Mainloop
 root.mainloop()
