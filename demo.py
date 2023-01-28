@@ -41,15 +41,14 @@ for y in yAxis:
          # Make Entry and label, offset each axis by one because of the lables
         e = Entry(root, textvariable=var, width=30)
         e.grid(row=y + 1, column=xcoor + 1)
-
-        label = Label(root, text = '', width=5)
-        label.grid(row=y + 1, column=xcoor + 1, sticky='e')
         # Save the string var and a reference to the labels in the dictionary
-        cells[id] = [var, label]
+        cells[id] = [var]
 
 def get_data():
     for key, value in cells.items():
         print(key, ':', value[0].get())
+
+        
 
 def generate_csv():
     header = xAxis
